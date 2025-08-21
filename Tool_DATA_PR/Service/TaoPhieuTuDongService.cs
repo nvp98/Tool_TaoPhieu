@@ -74,7 +74,7 @@ namespace Tool_DATA_PR.Service
             string caKipCode = kip.TenCa + kip.TenKip;
             int? soCa = int.TryParse(kip.TenCa, out int result) ? result : null;
 
-            for (int idLoCao = 1; idLoCao <= 5; idLoCao++)
+            for (int idLoCao = 1; idLoCao <= 6; idLoCao++)
             {
                 var xeGoong = await _context.Tbl_XeGoong.FirstOrDefaultAsync(x => x.ID_LoCao == idLoCao);
                 decimal? klxegoong = xeGoong?.KL_Xe;
@@ -229,6 +229,7 @@ namespace Tool_DATA_PR.Service
                 3 => "view_dq1_lg_daura_lc3",
                 4 => "view_dq1_lg_daura_lc4",
                 5 => "view_dq2_kqganglocao",
+                6 => "view_dq2_lg_daura_lc6",
                 _ => ""
             };
 
