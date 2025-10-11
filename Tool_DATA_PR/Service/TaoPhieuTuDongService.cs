@@ -229,7 +229,7 @@ namespace Tool_DATA_PR.Service
                 3 => "view_dq1_lg_daura_lc3",
                 4 => "view_dq1_lg_daura_lc4",
                 5 => "view_dq2_kqganglocao",
-                6 => "view_dq2_lg_daura_lc6",
+                6 => "view_dq2_kqganglocao_6",
                 _ => ""
             };
 
