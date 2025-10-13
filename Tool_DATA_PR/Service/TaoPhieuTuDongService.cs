@@ -103,18 +103,16 @@ namespace Tool_DATA_PR.Service
 
                 // Lấy dữ liệu từ BKMIS
                 var danhSachThungGet = await GetSoMeGangFromBKMIS(idLoCao, caKipCode, ngayStr, connectionString);
-                var danhSachThung = danhSachThungGet
-                    .OrderBy(x => int.Parse(x.TestPatternCode.Substring(9))) // Giả định số mẻ nằm ở vị trí cuối
-                    .ToList();
+                var danhSachThung = danhSachThungGet.ToList();
 
-                var soMeMoi = danhSachThung.Select(x => x.TestPatternCode).ToHashSet();
+                var soMeMoi = danhSachThung.Select(x => x.TestPatternCode.Trim()).ToHashSet();
 
                 // Tạo từ điển với danh sách thùng (hỗ trợ cả gốc và copy)
                 var allThungs = await _context.Tbl_BM_16_GangLong
                     .Where(x => x.MaPhieu == maPhieu)
                     .ToListAsync();
                 var thungDaCoDict = allThungs
-                    .GroupBy(x => x.BKMIS_SoMe)
+                    .GroupBy(x => x.BKMIS_SoMe.Trim())
                     .ToDictionary(
                         g => g.Key,
                         g => g.ToList()
@@ -136,7 +134,7 @@ namespace Tool_DATA_PR.Service
                 // XÓA thùng không còn trong BKMIS
                 foreach (var soMe in thungDaCoDict.Keys.ToList())
                 {
-                    if (!soMeMoi.Contains(soMe))
+                    if (!soMeMoi.Contains(soMe.Trim()))
                     {
                         var thungList = thungDaCoDict[soMe];
                         foreach (var thungDb in thungList)
@@ -158,16 +156,18 @@ namespace Tool_DATA_PR.Service
                 // CẬP NHẬT hoặc THÊM mới các thùng
                 foreach (var thung in danhSachThung)
                 {
-                    if (thungDaCoDict.TryGetValue(thung.TestPatternCode, out var thungList))
+                    if (thungDaCoDict.TryGetValue(thung.TestPatternCode?.Trim(), out var thungList))
                     {
                         foreach (var thungDaCo in thungList)
                         {
+
                             if ((thungDaCo.G_ID_TrangThai == 1 || thungDaCo.G_ID_TrangThai == 3)
                             && (thungDaCo.XacNhan == false || thungDaCo.XacNhan == null)
                             && (thungDaCo.T_ID_TrangThai == 2 || thungDaCo.T_ID_TrangThai == 4)
                             && thungDaCo.ID_TrangThai == 2)
                             {
-                                thungDaCo.BKMIS_ThungSo = thung.TestPatternCode.Length >= 2 ? thung.TestPatternCode[^2..] : thung.TestPatternCode;
+                                var codeTrim = thung.TestPatternCode?.Trim();
+                                thungDaCo.BKMIS_ThungSo = codeTrim.Length >= 2 ? codeTrim[^2..] : codeTrim;
                                 thungDaCo.BKMIS_Gio = thung.Patterntime?.ToString();
                                 thungDaCo.BKMIS_PhanLoai = thung.ClassifyName;
                                 _context.Update(thungDaCo);
@@ -183,14 +183,14 @@ namespace Tool_DATA_PR.Service
                     }
 
                     // Thêm mới thùng gốc
-                    var thungSo = thung.TestPatternCode.Length >= 2 ? thung.TestPatternCode[^2..] : thung.TestPatternCode;
+                    var thungSo = thung.TestPatternCode.Trim().Length >= 2 ? thung.TestPatternCode.Trim()[^2..] : thung.TestPatternCode.Trim();
                     var maThungGang = GenerateMaThung(ngayLamViec, idLoCao, kip.TenCa, sttThung);
 
                     var thungGang = new Tbl_BM_16_GangLong
                     {
                         MaPhieu = maPhieu,
                         MaThungGang = maThungGang,
-                        BKMIS_SoMe = thung.TestPatternCode,
+                        BKMIS_SoMe = thung.TestPatternCode.Trim(),
                         BKMIS_ThungSo = thungSo,
                         BKMIS_Gio = thung.Patterntime?.ToString(),
                         BKMIS_PhanLoai = thung.ClassifyName,
@@ -215,8 +215,8 @@ namespace Tool_DATA_PR.Service
                 }
 
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Đã nạp/cập nhật {count} thùng cho phiếu {maPhieu}", danhSachThung.Count, maPhieu);
-                GhiLogFile($"[INFO] Đã nạp/cập nhật {danhSachThung.Count} thùng cho phiếu {maPhieu}");
+                _logger.LogInformation("Đã thêm mới/cập nhật {count} thùng cho phiếu {maPhieu}", danhSachThung.Count, maPhieu);
+                GhiLogFile($"[INFO] Đã thêm mới/cập nhật {danhSachThung.Count} thùng cho phiếu {maPhieu}");
             }
         }
         private async Task<List<Bkmis_view>> GetSoMeGangFromBKMIS(int idLoCao, string caKipCode, string ngay, string connectionString)
@@ -259,7 +259,7 @@ namespace Tool_DATA_PR.Service
                 {
                     result.Add(new Bkmis_view
                     {
-                        TestPatternCode = reader["TestPatternCode"]?.ToString(),
+                        TestPatternCode = reader["TestPatternCode"]?.ToString()?.Trim(),
                         ClassifyName = reader["ClassifyName"]?.ToString(),
                         ProductionDate = reader["ProductionDate"]?.ToString(),
                         ShiftName = reader["ShiftName"]?.ToString(),
@@ -268,6 +268,9 @@ namespace Tool_DATA_PR.Service
                         TestPatternName = reader["TestPatternName"]?.ToString(),
                     });
                 }
+                var soMeList = result.Select(r => r.TestPatternCode).Distinct().ToList();
+                _logger.LogInformation("Danh sách số mẻ đã đọc: {soMeList}", string.Join(", ", soMeList));
+                GhiLogFile($"[INFO] Danh sách số mẻ đã đọc: {string.Join(", ", soMeList)}");
 
                 _logger.LogInformation("Đã đọc {count} dòng từ BKMIS bảng {table}", result.Count, table);
                 GhiLogFile($"[INFO] Đã đọc {result.Count} dòng từ BKMIS bảng {table}");
