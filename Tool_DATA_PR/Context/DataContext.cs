@@ -18,5 +18,7 @@ namespace Tool_DATA_PR.Context
         public DbSet<Tbl_BM_16_Phieu> Tbl_BM_16_Phieu { get; set; }
         public DbSet<Tbl_BM_16_GangLong> Tbl_BM_16_GangLong { get; set; }
 
+
     }
+    
 }
