@@ -105,7 +105,7 @@ namespace Tool_DATA_PR.Service
                 var danhSachThungGet = await GetSoMeGangFromBKMIS(idLoCao, caKipCode, ngayStr, connectionString);
                 var danhSachThung = danhSachThungGet.ToList();
 
-                var soMeMoi = danhSachThung.Select(x => x.TestPatternCode.Trim()).ToHashSet();
+                var soMeMoi = danhSachThung.Select(x => x.TestPatternCode.Trim()).ToList();
 
                 // Tạo từ điển với danh sách thùng (hỗ trợ cả gốc và copy)
                 var allThungs = await _context.Tbl_BM_16_GangLong
