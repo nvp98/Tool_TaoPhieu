@@ -181,5 +181,10 @@ namespace Tool_DATA_PR.Models
 
         [NotMapped]
         public string? GioChonMe { get; set; }
+
+        public int? Temp { get; set; }   
+
+        [Column(TypeName = "decimal(10, 3)")]
+        public decimal? Si { get; set; }
     }
 }
