@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Tool_DATA_PR.Context;
 using Tool_DATA_PR.Models;
@@ -170,6 +171,8 @@ namespace Tool_DATA_PR.Service
                                 thungDaCo.BKMIS_ThungSo = codeTrim.Length >= 2 ? codeTrim[^2..] : codeTrim;
                                 thungDaCo.BKMIS_Gio = thung.Patterntime?.ToString();
                                 thungDaCo.BKMIS_PhanLoai = thung.ClassifyName;
+                                thungDaCo.Temp = int.TryParse(thung.Temp, out int nd) ? nd : (int?)null;
+                                thungDaCo.Si = thung.Si;
                                 _context.Update(thungDaCo);
                                 GhiLogFile($"[INFO] Cập nhật thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
                             }
@@ -206,7 +209,9 @@ namespace Tool_DATA_PR.Service
                         G_Ca = soCa,
                         G_ID_NguoiLuu = null,
                         T_copy = false,
-                        KL_XeGoong = klxegoong
+                        KL_XeGoong = klxegoong,
+                        Temp = int.TryParse(thung.Temp, out int tempValue) ? tempValue : (int?)null,
+                        Si = thung.Si,
                     };
 
                     await _context.Tbl_BM_16_GangLong.AddAsync(thungGang);
@@ -239,7 +244,7 @@ namespace Tool_DATA_PR.Service
                 return result;
             }
 
-            string query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
+            string query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Temp,Si " +
                            $"FROM bkmis_kcshpsdq.{table} " +
                            $"WHERE bkmis_kcshpsdq.{table}.ProductionDate = '{ngay}' " +
                            $"AND bkmis_kcshpsdq.{table}.ShiftName = '{caKipCode}'";
@@ -266,6 +271,8 @@ namespace Tool_DATA_PR.Service
                         InputTime = reader["InputTime"]?.ToString(),
                         Patterntime = reader["Patterntime"]?.ToString(),
                         TestPatternName = reader["TestPatternName"]?.ToString(),
+                        Temp = reader["Temp"].ToString(),
+                        Si = reader["Si"] != DBNull.Value ? reader.GetDecimal(reader.GetOrdinal("Si")) : 0m,
                     });
                 }
                 var soMeList = result.Select(r => r.TestPatternCode).Distinct().ToList();
