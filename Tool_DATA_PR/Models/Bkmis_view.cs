@@ -16,7 +16,6 @@ namespace Tool_DATA_PR.Models
         public string? Patterntime { get; set; }
         public string? TestPatternName { get; set; }
         public decimal? Si { get; set; }
-        public string? Temp { get; set; }
         public string? PhanLoaiLoThoi { get; set; }
     }
 }
