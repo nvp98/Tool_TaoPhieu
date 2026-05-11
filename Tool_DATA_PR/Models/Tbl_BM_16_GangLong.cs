@@ -186,5 +186,7 @@ namespace Tool_DATA_PR.Models
 
         [Column(TypeName = "decimal(10, 3)")]
         public decimal? Si { get; set; }
+
+        public string? PhanLoaiLoThoi { get; set; }
     }
 }
