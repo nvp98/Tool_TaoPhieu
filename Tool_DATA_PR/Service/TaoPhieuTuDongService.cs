@@ -161,7 +161,6 @@ namespace Tool_DATA_PR.Service
                     {
                         foreach (var thungDaCo in thungList)
                         {
-                            thungDaCo.PhanLoaiLoThoi = thung.PhanLoaiLoThoi;
 
                             if ((thungDaCo.G_ID_TrangThai == 1 || thungDaCo.G_ID_TrangThai == 3)
                             && (thungDaCo.XacNhan == false || thungDaCo.XacNhan == null)
@@ -173,7 +172,8 @@ namespace Tool_DATA_PR.Service
                                 thungDaCo.BKMIS_Gio = thung.Patterntime?.ToString();
                                 thungDaCo.BKMIS_PhanLoai = thung.ClassifyName;
                                 thungDaCo.Si = thung.Si;
-                              
+                                thungDaCo.PhanLoaiLoThoi = thung.PhanLoaiLoThoi;
+
                                 _context.Update(thungDaCo);
                                 GhiLogFile($"[INFO] Cập nhật thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
                             }
