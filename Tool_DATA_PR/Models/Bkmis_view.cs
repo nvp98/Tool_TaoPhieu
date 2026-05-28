@@ -17,5 +17,6 @@ namespace Tool_DATA_PR.Models
         public string? TestPatternName { get; set; }
         public decimal? Si { get; set; }
         public string? PhanLoaiLoThoi { get; set; }
+        public string? PhanLoaiLoThoiLG { get; set; }
     }
 }

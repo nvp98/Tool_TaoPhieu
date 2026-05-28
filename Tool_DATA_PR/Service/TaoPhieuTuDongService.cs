@@ -173,6 +173,7 @@ namespace Tool_DATA_PR.Service
                                 thungDaCo.BKMIS_PhanLoai = thung.ClassifyName;
                                 thungDaCo.Si = thung.Si;
                                 thungDaCo.PhanLoaiLoThoi = thung.PhanLoaiLoThoi;
+                                thungDaCo.PhanLoaiLoThoiLG = thung.PhanLoaiLoThoiLG;
 
                                 _context.Update(thungDaCo);
                                 GhiLogFile($"[INFO] Cập nhật thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
@@ -213,7 +214,8 @@ namespace Tool_DATA_PR.Service
                         KL_XeGoong = klxegoong,
                        // Temp = int.TryParse(thung.Temp, out int tempValue) ? tempValue : (int?)null,
                         Si = thung.Si,
-                        PhanLoaiLoThoi = thung.PhanLoaiLoThoi
+                        PhanLoaiLoThoi = thung.PhanLoaiLoThoi,
+                        PhanLoaiLoThoiLG = thung.PhanLoaiLoThoiLG
 
                     };
 
@@ -247,7 +249,7 @@ namespace Tool_DATA_PR.Service
                 return result;
             }
 
-            string query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi " +
+            string query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi,phamCaplothoilg " +
                            $"FROM bkmis_kcshpsdq.{table} " +
                            $"WHERE bkmis_kcshpsdq.{table}.ProductionDate = '{ngay}' " +
                            $"AND bkmis_kcshpsdq.{table}.ShiftName = '{caKipCode}'";
@@ -277,6 +279,7 @@ namespace Tool_DATA_PR.Service
                         //Temp = reader["Temp"].ToString(),
                         Si = reader["Si"] != DBNull.Value ? reader.GetDecimal(reader.GetOrdinal("Si")) : 0m,
                         PhanLoaiLoThoi = reader["phamCaplothoi"]?.ToString(),
+                        PhanLoaiLoThoiLG = reader["phamCaplothoilg"]?.ToString(),
                     });
                 }
                 var soMeList = result.Select(r => r.TestPatternCode).Distinct().ToList();
