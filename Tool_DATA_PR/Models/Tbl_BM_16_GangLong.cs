@@ -190,5 +190,7 @@ namespace Tool_DATA_PR.Models
         public string? PhanLoaiLoThoi { get; set; }
 
         public string? PhanLoaiLoThoiLG { get; set; }
+
+        public bool? HasPhanLoaiLoThoi { get; set; }
     }
 }

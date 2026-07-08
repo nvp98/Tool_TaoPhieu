@@ -157,36 +157,76 @@ namespace Tool_DATA_PR.Service
                 // CẬP NHẬT hoặc THÊM mới các thùng
                 foreach (var thung in danhSachThung)
                 {
+                    //if (thungDaCoDict.TryGetValue(thung.TestPatternCode?.Trim(), out var thungList))
+                    //{
+                    //    foreach (var thungDaCo in thungList)
+                    //    {
+
+                    //        if ((thungDaCo.G_ID_TrangThai == 1 || thungDaCo.G_ID_TrangThai == 3)
+                    //        && (thungDaCo.XacNhan == false || thungDaCo.XacNhan == null)
+                    //        && (thungDaCo.T_ID_TrangThai == 2 || thungDaCo.T_ID_TrangThai == 4)
+                    //        && thungDaCo.ID_TrangThai == 2)
+                    //        {
+                    //            var codeTrim = thung.TestPatternCode?.Trim();
+                    //            thungDaCo.BKMIS_ThungSo = codeTrim.Length >= 2 ? codeTrim[^2..] : codeTrim;
+                    //            thungDaCo.BKMIS_Gio = thung.Patterntime?.ToString();
+                    //            thungDaCo.BKMIS_PhanLoai = thung.ClassifyName;
+                    //            thungDaCo.Si = thung.Si;
+                    //            thungDaCo.PhanLoaiLoThoi = thung.PhanLoaiLoThoi;
+                    //            thungDaCo.PhanLoaiLoThoiLG = thung.PhanLoaiLoThoiLG;
+
+                    //            _context.Update(thungDaCo);
+                    //            GhiLogFile($"[INFO] Cập nhật thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
+                    //        }
+                    //        else
+                    //        {
+                    //            _logger.LogInformation("Bỏ qua thùng: {code}, MaThungGang: {maThung}", thung.TestPatternCode, thungDaCo.MaThungGang);
+                    //            GhiLogFile($"[INFO] Bỏ qua thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
+                    //        }
+                    //    }
+                    //    continue;
+                    //}
                     if (thungDaCoDict.TryGetValue(thung.TestPatternCode?.Trim(), out var thungList))
                     {
                         foreach (var thungDaCo in thungList)
                         {
+                            bool choPhepCapNhat =
+                                (thungDaCo.G_ID_TrangThai == 1 || thungDaCo.G_ID_TrangThai == 3) &&
+                                thungDaCo.XacNhan != true &&
+                                (thungDaCo.T_ID_TrangThai == 2 || thungDaCo.T_ID_TrangThai == 4) &&
+                                thungDaCo.ID_TrangThai == 2;
 
-                            if ((thungDaCo.G_ID_TrangThai == 1 || thungDaCo.G_ID_TrangThai == 3)
-                            && (thungDaCo.XacNhan == false || thungDaCo.XacNhan == null)
-                            && (thungDaCo.T_ID_TrangThai == 2 || thungDaCo.T_ID_TrangThai == 4)
-                            && thungDaCo.ID_TrangThai == 2)
+                            if (!choPhepCapNhat)
                             {
-                                var codeTrim = thung.TestPatternCode?.Trim();
-                                thungDaCo.BKMIS_ThungSo = codeTrim.Length >= 2 ? codeTrim[^2..] : codeTrim;
-                                thungDaCo.BKMIS_Gio = thung.Patterntime?.ToString();
-                                thungDaCo.BKMIS_PhanLoai = thung.ClassifyName;
-                                thungDaCo.Si = thung.Si;
-                                thungDaCo.PhanLoaiLoThoi = thung.PhanLoaiLoThoi;
-                                thungDaCo.PhanLoaiLoThoiLG = thung.PhanLoaiLoThoiLG;
+                                _logger.LogInformation("Bỏ qua thùng: {code}, MaThungGang: {maThung}",
+                                    thung.TestPatternCode, thungDaCo.MaThungGang);
 
-                                _context.Update(thungDaCo);
-                                GhiLogFile($"[INFO] Cập nhật thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
-                            }
-                            else
-                            {
-                                _logger.LogInformation("Bỏ qua thùng: {code}, MaThungGang: {maThung}", thung.TestPatternCode, thungDaCo.MaThungGang);
                                 GhiLogFile($"[INFO] Bỏ qua thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
+                                continue;
                             }
+
+                            var codeTrim = thung.TestPatternCode?.Trim();
+
+                            // Luôn đồng bộ phân loại từ BKMIS
+                            thungDaCo.PhanLoaiLoThoiLG = thung.PhanLoaiLoThoiLG;
+
+                            // Chỉ cập nhật khi chưa bị người dùng override
+                            if (thungDaCo.HasPhanLoaiLoThoi != true)
+                            {
+                                thungDaCo.PhanLoaiLoThoi = thung.PhanLoaiLoThoi;
+                                thungDaCo.HasPhanLoaiLoThoi = false;
+                            }
+
+                            thungDaCo.Si = thung.Si;
+                            thungDaCo.BKMIS_PhanLoai = thung.ClassifyName;
+                            thungDaCo.BKMIS_Gio = thung.Patterntime ?? "";
+                            thungDaCo.BKMIS_ThungSo = codeTrim.Length >= 2 ? codeTrim[^2..] : null;
+
+                            GhiLogFile($"[INFO] Cập nhật thùng: {thung.TestPatternCode}, MaThungGang: {thungDaCo.MaThungGang}");
                         }
+
                         continue;
                     }
-
                     // Thêm mới thùng gốc
                     var thungSo = thung.TestPatternCode.Trim().Length >= 2 ? thung.TestPatternCode.Trim()[^2..] : thung.TestPatternCode.Trim();
                     var maThungGang = GenerateMaThung(ngayLamViec, idLoCao, kip.TenCa, sttThung);
